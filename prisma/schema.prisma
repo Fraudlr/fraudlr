@@ -1,0 +1,208 @@
+/**
+ * @fileoverview Prisma Database Schema
+ * 
+ * This file defines the database structure for the Fraudlr application.
+ * Prisma uses this schema to:
+ * - Generate TypeScript types for type-safe database queries
+ * - Create and manage database migrations
+ * - Provide autocompletion in your IDE
+ * 
+ * Models defined:
+ * - User: Stores user account information
+ * - Case: Fraud analysis cases created by users
+ * - CaseFile: Files uploaded for each case
+ * - Integration: External data source connections
+ * - ContactSubmission: Contact form submissions
+ */
+
+// Configure the Prisma Client generator
+// This creates the @prisma/client package with typed methods
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Configure the database connection
+// We're using PostgreSQL as specified in requirements
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER MODEL
+// ============================================
+// Stores user account information for authentication
+// Each user can create multiple cases and integrations
+model User {
+  // Primary key - auto-generated unique identifier
+  id        String   @id @default(cuid())
+  
+  // User's display name
+  name      String
+  
+  // Email address - must be unique for login
+  email     String   @unique
+  
+  // Hashed password (never store plain text passwords!)
+  password  String
+  
+  // Profile image URL (optional)
+  image     String?
+  
+  // Subscription tier: 'free', 'standard', or 'pro'
+  tier      String   @default("free")
+  
+  // Currency preference for pricing display
+  currency  String   @default("USD")
+  
+  // Theme preference: 'light' or 'dark'
+  theme     String   @default("dark")
+  
+  // Account creation timestamp
+  createdAt DateTime @default(now())
+  
+  // Last update timestamp
+  updatedAt DateTime @updatedAt
+  
+  // Relations: A user can have many cases and integrations
+  cases        Case[]
+  integrations Integration[]
+  
+  // Index email for faster login queries
+  @@index([email])
+}
+
+// ============================================
+// CASE MODEL
+// ============================================
+// Represents a fraud analysis case
+// Users upload files and run AI analysis on cases
+model Case {
+  // Primary key
+  id          String   @id @default(cuid())
+  
+  // Case name/title for identification
+  name        String
+  
+  // Optional description of what's being analyzed
+  description String?
+  
+  // Case status: 'pending', 'processing', 'completed', 'failed'
+  status      String   @default("pending")
+  
+  // AI analysis results stored as JSON
+  // Contains fraud scores, anomaly details, etc.
+  results     Json?
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Foreign key to User
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Relation: A case can have multiple files
+  files       CaseFile[]
+  
+  // Index for faster user case queries
+  @@index([userId])
+  @@index([status])
+}
+
+// ============================================
+// CASE FILE MODEL
+// ============================================
+// Stores uploaded files associated with cases
+// Supports CSV files for fraud analysis
+model CaseFile {
+  // Primary key
+  id        String   @id @default(cuid())
+  
+  // Original filename
+  filename  String
+  
+  // File storage path or URL
+  filepath  String
+  
+  // File size in bytes
+  size      Int
+  
+  // MIME type (e.g., 'text/csv')
+  mimetype  String
+  
+  // Upload timestamp
+  createdAt DateTime @default(now())
+  
+  // Foreign key to Case
+  caseId    String
+  case      Case     @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  
+  @@index([caseId])
+}
+
+// ============================================
+// INTEGRATION MODEL
+// ============================================
+// External data source connections
+// Allows users to connect APIs or SQL databases
+model Integration {
+  // Primary key
+  id           String   @id @default(cuid())
+  
+  // Integration name for identification
+  name         String
+  
+  // Type: 'api' or 'sql'
+  type         String
+  
+  // Connection details (encrypted in production)
+  // For API: endpoint URL, headers
+  // For SQL: connection string, query
+  config       Json
+  
+  // Whether the integration is active
+  isActive     Boolean  @default(true)
+  
+  // Last sync timestamp
+  lastSyncAt   DateTime?
+  
+  // Timestamps
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Foreign key to User
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+// ============================================
+// CONTACT SUBMISSION MODEL
+// ============================================
+// Stores contact form submissions from the landing page
+model ContactSubmission {
+  // Primary key
+  id        String   @id @default(cuid())
+  
+  // Sender's name
+  name      String
+  
+  // Sender's email for response
+  email     String
+  
+  // Subject line
+  subject   String
+  
+  // Message content
+  message   String
+  
+  // Whether the submission has been read/responded to
+  isRead    Boolean  @default(false)
+  
+  // Submission timestamp
+  createdAt DateTime @default(now())
+  
+  @@index([isRead])
+}

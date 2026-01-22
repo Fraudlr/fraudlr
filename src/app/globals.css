@@ -1,0 +1,201 @@
+/**
+ * @fileoverview Global CSS Styles
+ * 
+ * This file contains global styles for the Fraudlr application.
+ * It sets up:
+ * - Tailwind CSS base, components, and utilities
+ * - CSS custom properties (variables) for theming
+ * - Geist font configuration
+ * - Dark mode color scheme
+ * 
+ * Color Palette (Fraudlr Brand):
+ * - Background: #0F0F0F (deep black)
+ * - Accent: #FD4D53 (Fraudlr red)
+ * - Text: #F3F3F3, #D9D9D9, #545454 (white to gray gradient)
+ */
+
+/* Import Tailwind CSS layers */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   CSS CUSTOM PROPERTIES (VARIABLES)
+   ============================================
+   
+   These variables define the color scheme for the application.
+   We use HSL (Hue, Saturation, Lightness) values for flexibility.
+   The dark theme uses Fraudlr's brand colors.
+*/
+
+@layer base {
+  /* Light theme (fallback - not primary for Fraudlr) */
+  :root {
+    /* Background and foreground */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 6%;
+
+    /* Card backgrounds */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 6%;
+
+    /* Popover backgrounds */
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 6%;
+
+    /* Primary color - Fraudlr Red (#FD4D53) */
+    --primary: 357 98% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary color */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 6%;
+
+    /* Muted backgrounds */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 33%;
+
+    /* Accent colors */
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 6%;
+
+    /* Destructive/error */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders and inputs */
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 357 98% 65%;
+
+    /* Border radius */
+    --radius: 0.5rem;
+
+    /* Sidebar colors */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 33%;
+    --sidebar-primary: 357 98% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 6%;
+    --sidebar-border: 0 0% 85%;
+    --sidebar-ring: 357 98% 65%;
+  }
+
+  /* Dark theme - Primary Fraudlr theme */
+  .dark {
+    /* Background: #0F0F0F */
+    --background: 0 0% 6%;
+    /* Foreground: #F3F3F3 */
+    --foreground: 0 0% 95%;
+
+    /* Card backgrounds - slightly lighter than main bg */
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 95%;
+
+    /* Popover backgrounds */
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Primary: Fraudlr Red (#FD4D53) */
+    --primary: 357 98% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - #545454 */
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 85%;
+
+    /* Muted - for less prominent text */
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 55%;
+
+    /* Accent - for hover states */
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 95%;
+
+    /* Destructive/error */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders - subtle dividers */
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 357 98% 65%;
+
+    /* Sidebar colors for dashboard */
+    --sidebar-background: 0 0% 5%;
+    --sidebar-foreground: 0 0% 85%;
+    --sidebar-primary: 357 98% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 357 98% 65%;
+  }
+}
+
+/* ============================================
+   BASE ELEMENT STYLES
+   ============================================ */
+
+@layer base {
+  /* Apply border styling to all elements */
+  * {
+    @apply border-border;
+  }
+  
+  /* Body styling */
+  body {
+    @apply bg-background text-foreground;
+    /* Enable smooth font rendering */
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ============================================
+   CUSTOM COMPONENT STYLES
+   ============================================ */
+
+@layer components {
+  /* Hero gradient text effect */
+  .gradient-text {
+    @apply bg-gradient-to-r from-fraudlr-white via-fraudlr-silver to-fraudlr-red bg-clip-text text-transparent;
+  }
+  
+  /* Glow effect for CTAs */
+  .glow-effect {
+    box-shadow: 0 0 30px rgba(253, 77, 83, 0.3);
+  }
+  
+  .glow-effect:hover {
+    box-shadow: 0 0 50px rgba(253, 77, 83, 0.5);
+  }
+  
+  /* Hex pattern background for hero section */
+  .hex-pattern {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='hexagons' fill='%23FD4D53' fill-opacity='0.03' fill-rule='nonzero'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+@layer utilities {
+  /* Hide scrollbar but keep scrolling */
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Smooth scroll behavior */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+}
