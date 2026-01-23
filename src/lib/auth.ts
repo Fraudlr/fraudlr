@@ -14,6 +14,7 @@
 
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 
 // The secret key for signing JWTs
@@ -133,6 +134,7 @@ export async function verifyToken(token: string): Promise<UserPayload | null> {
 /**
  * Stores the auth token in an HTTP-only cookie
  * 
+ * @param response - The NextResponse object to set the cookie on
  * @param token - The JWT token to store
  * 
  * Cookie Settings:
@@ -141,10 +143,8 @@ export async function verifyToken(token: string): Promise<UserPayload | null> {
  * - sameSite: Prevents CSRF attacks
  * - maxAge: Cookie expiration in seconds
  */
-export async function setAuthCookie(token: string): Promise<void> {
-  const cookieStore = await cookies()
-  
-  cookieStore.set(AUTH_COOKIE_NAME, token, {
+export function setAuthCookie(response: NextResponse, token: string): void {
+  response.cookies.set(AUTH_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',

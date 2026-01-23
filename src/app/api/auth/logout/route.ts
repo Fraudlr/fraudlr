@@ -9,7 +9,7 @@
  */
 
 import { NextResponse } from "next/server"
-import { clearTokenCookie } from "@/lib/auth"
+import { clearAuthCookie } from "@/lib/auth"
 
 export async function POST() {
   const response = NextResponse.json(
@@ -18,7 +18,7 @@ export async function POST() {
   )
 
   // Clear the auth cookie
-  clearTokenCookie(response)
+  clearAuthCookie()
 
   return response
 }

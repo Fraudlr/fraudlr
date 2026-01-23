@@ -17,8 +17,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
-import { hashPassword, createToken, setTokenCookie } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { hashPassword, createToken, setAuthCookie } from "@/lib/auth"
 
 export async function POST(request: NextRequest) {
   try {
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     )
 
     // Set auth cookie
-    setTokenCookie(response, token)
+    setAuthCookie(response, token)
 
     return response
   } catch (error) {
