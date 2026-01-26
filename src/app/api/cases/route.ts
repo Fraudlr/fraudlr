@@ -126,15 +126,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!file) {
-      return NextResponse.json(
-        { error: "File is required" },
-        { status: 400 }
-      )
-    }
-
-    // Validate file type
-    if (!file.name.endsWith('.csv')) {
+    // Validate file type if file is provided
+    if (file && !file.name.endsWith('.csv')) {
       return NextResponse.json(
         { error: "Only CSV files are supported" },
         { status: 400 }
@@ -180,21 +173,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create case with file metadata
+    // Create case with optional file metadata
     const newCase = await prisma.case.create({
       data: {
         name: name,
         description: description || "",
         status: "pending",
         userId: user.id,
-        files: {
+        files: file ? {
           create: {
             filename: file.name,
             filepath: `/uploads/${user.id}/${Date.now()}-${file.name}`, // Placeholder URL
             mimetype: file.type,
             size: file.size,
           },
-        },
+        } : undefined,
       },
       include: {
         files: true,

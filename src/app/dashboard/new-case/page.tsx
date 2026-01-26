@@ -62,7 +62,7 @@ export default function NewCasePage() {
   const [messages, setMessages] = React.useState<Message[]>([
     {
       role: "assistant",
-      content: "Hello! I'm Fraudlr AI. I'll help you analyze your financial data for potential fraud. Start by giving your case a name and uploading a CSV file.",
+      content: "Hello! I'm Fraudlr AI. I'll help you analyze your financial data for potential fraud. Start by giving your case a name. You can optionally upload a CSV file now or add it later.",
       timestamp: new Date(),
     },
   ])
@@ -83,7 +83,7 @@ export default function NewCasePage() {
         return
       }
       setFile(selectedFile)
-      addMessage("assistant", `Great! I've received your file: "${selectedFile.name}". When you're ready, click "Create Case" to start the analysis.`)
+      addMessage("assistant", `Great! I've received your file: "${selectedFile.name}". Click "Create Case" to start the analysis, or you can create the case without a file and upload it later.`)
     }
   }
 
@@ -140,7 +140,7 @@ export default function NewCasePage() {
     } else if (userMessage.toLowerCase().includes("help")) {
       addMessage(
         "assistant",
-        "Here's how to get started:\n\n1. Enter a name for your case (e.g., 'Q4 2025 Analysis')\n2. Add an optional description\n3. Upload your CSV file containing transaction data\n4. Click 'Create Case' to start the analysis\n\nOnce the analysis is complete, you can ask me questions about the results!"
+        "Here's how to get started:\n\n1. Enter a name for your case (e.g., 'Q4 2025 Analysis')\n2. Add an optional description\n3. Optionally upload a CSV file with transaction data (you can add it later too)\n4. Click 'Create Case' to get started\n\nOnce you upload data, I can perform fraud analysis and answer your questions!"
       )
     } else {
       addMessage(
@@ -161,21 +161,22 @@ export default function NewCasePage() {
       return
     }
 
-    if (!file) {
-      addMessage("assistant", "Please upload a CSV file to analyze.")
-      return
-    }
-
     setIsCreating(true)
     addMessage("user", `Create case: "${caseName}"`)
-    addMessage("assistant", "Creating your case and starting analysis...")
+    if (file) {
+      addMessage("assistant", "Creating your case and starting analysis...")
+    } else {
+      addMessage("assistant", "Creating your case. You can upload a CSV file later for analysis.")
+    }
 
     try {
       // Create case via API
       const formData = new FormData()
       formData.append("name", caseName)
       formData.append("description", description)
-      formData.append("file", file)
+      if (file) {
+        formData.append("file", file)
+      }
 
       const response = await fetch("/api/cases", {
         method: "POST",
@@ -251,7 +252,7 @@ export default function NewCasePage() {
 
           {/* File Upload */}
           <div className="space-y-2">
-            <Label>Upload CSV *</Label>
+            <Label>Upload CSV (Optional)</Label>
             {file ? (
               <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
                 <FileSpreadsheet className="h-5 w-5 text-primary" />
@@ -287,7 +288,7 @@ export default function NewCasePage() {
           <Button
             className="w-full"
             onClick={handleCreateCase}
-            disabled={isCreating || !caseName.trim() || !file}
+            disabled={isCreating || !caseName.trim()}
           >
             {isCreating ? (
               <>
