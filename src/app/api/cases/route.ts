@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { getCurrentUser } from "@/lib/auth"
 
 /**
@@ -92,11 +92,10 @@ export async function GET(request: NextRequest) {
  * 
  * Creates a new fraud analysis case.
  * 
- * Request Body:
- * - title: string
+ * Request Body (FormData):
+ * - name: string - Case name
  * - description: string (optional)
- * - message: string - Initial analysis prompt
- * - files: Array<{ name, type, size, url }> (optional)
+ * - file: File - CSV file to analyze
  */
 export async function POST(request: NextRequest) {
   try {
@@ -109,13 +108,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body = await request.json()
-    const { title, description, message, files } = body
+    console.log('Authenticated user:', user) // Debug log
+
+    // Parse FormData
+    const formData = await request.formData()
+    const name = formData.get("name") as string
+    const description = formData.get("description") as string
+    const file = formData.get("file") as File
+
+    console.log('Received form data:', { name, description, fileName: file?.name }) // Debug log
 
     // Validate required fields
-    if (!title) {
+    if (!name || !name.trim()) {
       return NextResponse.json(
-        { error: "Title is required" },
+        { error: "Case name is required" },
+        { status: 400 }
+      )
+    }
+
+    if (!file) {
+      return NextResponse.json(
+        { error: "File is required" },
+        { status: 400 }
+      )
+    }
+
+    // Validate file type
+    if (!file.name.endsWith('.csv')) {
+      return NextResponse.json(
+        { error: "Only CSV files are supported" },
         { status: 400 }
       )
     }
@@ -124,6 +145,14 @@ export async function POST(request: NextRequest) {
     const currentMonth = new Date()
     currentMonth.setDate(1)
     currentMonth.setHours(0, 0, 0, 0)
+
+    // Ensure user.id exists before proceeding
+    if (!user.id) {
+      return NextResponse.json(
+        { error: "Invalid user session" },
+        { status: 401 }
+      )
+    }
 
     const caseCount = await prisma.case.count({
       where: {
@@ -151,21 +180,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create case with files
+    // Create case with file metadata
     const newCase = await prisma.case.create({
       data: {
-        title,
-        description: description || message,
+        name: name,
+        description: description || "",
         status: "pending",
         userId: user.id,
-        files: files && files.length > 0 ? {
-          create: files.map((file: { name: string; type: string; size: number; url: string }) => ({
-            name: file.name,
-            type: file.type,
+        files: {
+          create: {
+            filename: file.name,
+            filepath: `/uploads/${user.id}/${Date.now()}-${file.name}`, // Placeholder URL
+            mimetype: file.type,
             size: file.size,
-            url: file.url,
-          })),
-        } : undefined,
+          },
+        },
       },
       include: {
         files: true,
@@ -182,6 +211,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message: "Case created successfully",
+        id: newCase.id,
         case: newCase,
       },
       { status: 201 }
@@ -189,7 +219,10 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Create case error:", error)
     return NextResponse.json(
-      { error: "An error occurred while creating the case" },
+      { 
+        error: "An error occurred while creating the case",
+        message: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     )
   }
