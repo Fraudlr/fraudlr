@@ -85,22 +85,20 @@ export function Hero() {
             </div>
           </div>
           
-          {/* Right Column: Hero Image */}
-          <div className="relative flex justify-center lg:justify-end">
-            {/* Glow effect behind image */}
-            <div className="absolute inset-0 bg-[#FD4D53]/20 blur-3xl rounded-full scale-75" />
-            
-            {/* Hero Image - Neon Hex Logo */}
-            <div className="relative">
-              <Image
-                src="/images/logo-icon.png"
-                alt="Fraudlr AI Detection Visualization"
-                width={500}
-                height={500}
-                className="relative z-10 animate-pulse-glow"
-                priority
-              />
-            </div>
+          {/* Right Column: (Logo removed, reserved for future visual) */}
+          <div className="relative flex justify-center lg:justify-end min-h-[340px]">
+            {/* Enhanced red glow effect, logo removed */}
+            <div
+              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0"
+              style={{
+                width: '420px',
+                height: '420px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(253,77,83,0.45) 0%, rgba(253,77,83,0.18) 60%, transparent 100%)',
+                filter: 'blur(60px)',
+              }}
+            />
+            {/* Reserved for future hero visual */}
           </div>
         </div>
       </div>
