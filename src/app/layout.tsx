@@ -17,6 +17,7 @@ import type { Metadata } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { ThemeProvider } from "@/components/providers/theme-provider"
+import { CookieBanner } from "@/components/cookie-banner"
 import "./globals.css"
 
 /**
@@ -62,7 +63,7 @@ export const metadata: Metadata = {
   },
   // Favicon and icons
   icons: {
-    icon: "/favicon.ico",
+    icon: "/images/fraudlr-icon-red.png",
   },
 }
 
@@ -106,6 +107,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <CookieBanner />
         </ThemeProvider>
       </body>
     </html>

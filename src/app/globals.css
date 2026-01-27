@@ -198,4 +198,8 @@
   .smooth-scroll {
     scroll-behavior: smooth;
   }
+  /* Hide Next.js dev-tool indicator */
+  .nextjs-portal {
+    display: none !important;
+  }
 }
