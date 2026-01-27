@@ -46,7 +46,7 @@ export function Footer() {
           {/* Brand Column */}
           <div className="space-y-4">
             <Image
-              src="/images/FraudlrWhite (500 x 200 px) Main Logo.png"
+              src="/images/fraudlr-white-logo.png"
               alt="Fraudlr Logo"
               width={120}
               height={48}

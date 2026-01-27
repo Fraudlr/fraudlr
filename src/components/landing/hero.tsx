@@ -93,7 +93,7 @@ export function Hero() {
             {/* Hero Image - Neon Hex Logo */}
             <div className="relative">
               <Image
-                src="/images/Logo Icon.png"
+                src="/images/logo-icon.png"
                 alt="Fraudlr AI Detection Visualization"
                 width={500}
                 height={500}

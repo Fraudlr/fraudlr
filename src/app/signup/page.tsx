@@ -108,7 +108,7 @@ export default function SignupPage() {
         <div className="relative z-20 flex items-center text-lg font-medium">
           <Link href="/">
             <Image
-              src="/images/FraudlrWhite (500 x 200 px) Main Logo.png"
+              src="/images/fraudlr-white-logo.png"
               alt="Fraudlr Logo"
               width={160}
               height={64}
@@ -121,9 +121,9 @@ export default function SignupPage() {
         <div className="relative z-20 mt-auto">
           <blockquote className="space-y-2">
             <p className="text-lg text-[#F3F3F3]">
-              &ldquo;Fraudlr has revolutionized how we detect and prevent fraud. The AI-powered analytics provide insights we never thought possible.&rdquo;
+              &ldquo;Fraudlr has revolutionized how we detect fraud. The AI-powered analytics provide insights we never thought possible.&rdquo;
             </p>
-            <footer className="text-sm text-[#D9D9D9]">Sofia Davis, Risk Manager</footer>
+            <footer className="text-sm text-[#D9D9D9]">Graham Jansen, Founder</footer>
           </blockquote>
         </div>
       </div>
@@ -135,7 +135,7 @@ export default function SignupPage() {
           <div className="flex justify-center lg:hidden mb-6">
             <Link href="/">
               <Image
-                src="/images/FraudlrWhite (500 x 200 px) Main Logo.png"
+                src="/images/fraudlr-white-logo.png"
                 alt="Fraudlr Logo"
                 width={160}
                 height={64}

@@ -100,7 +100,7 @@ export function Header() {
           {/* Logo - links to home */}
           <Link href="/" className="flex items-center">
             <Image
-              src="/images/FraudlrWhite (500 x 200 px) Main Logo.png"
+              src="/images/fraudlr-white-logo.png"
               alt="Fraudlr Logo"
               width={140}
               height={56}
