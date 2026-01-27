@@ -28,6 +28,8 @@ import {
   FileSpreadsheet,
   AlertTriangle,
   CheckCircle2,
+  Clock,
+  XCircle,
   ArrowRight,
   Upload,
 } from "lucide-react"
@@ -49,8 +51,9 @@ export default async function DashboardPage() {
   let stats = {
     totalCases: 0,
     pendingCases: 0,
+    processingCases: 0,
     completedCases: 0,
-    flaggedItems: 0,
+    failedCases: 0,
   }
 
   try {
@@ -64,9 +67,19 @@ export default async function DashboardPage() {
       where: { userId: user.id, status: "pending" },
     })
 
+    // Count processing cases
+    stats.processingCases = await prisma.case.count({
+      where: { userId: user.id, status: "processing" },
+    })
+
     // Count completed cases
     stats.completedCases = await prisma.case.count({
       where: { userId: user.id, status: "completed" },
+    })
+
+    // Count failed cases
+    stats.failedCases = await prisma.case.count({
+      where: { userId: user.id, status: "failed" },
     })
   } catch (error) {
     // Database might not be connected yet - use defaults
@@ -107,14 +120,30 @@ export default async function DashboardPage() {
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Pending Analysis
+              Pending
             </CardTitle>
             <AlertTriangle className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.pendingCases}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Awaiting processing
+              Awaiting analysis
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Processing Cases */}
+        <Card className="bg-card border-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Processing
+            </CardTitle>
+            <Clock className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.processingCases}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Currently analyzing
             </p>
           </CardContent>
         </Card>
@@ -131,6 +160,25 @@ export default async function DashboardPage() {
             <div className="text-2xl font-bold">{stats.completedCases}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Analysis completed
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Second Row of Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Failed Cases */}
+        <Card className="bg-card border-border">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Failed
+            </CardTitle>
+            <XCircle className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.failedCases}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Analysis failed
             </p>
           </CardContent>
         </Card>

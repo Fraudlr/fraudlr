@@ -25,38 +25,9 @@ import { Button } from "@/components/ui/button"
 import {
   PlusCircle,
   FileSpreadsheet,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  XCircle,
   ArrowRight,
 } from "lucide-react"
-
-/**
- * Status badge configuration
- */
-const statusConfig = {
-  pending: {
-    label: "Pending",
-    icon: Clock,
-    className: "bg-yellow-500/10 text-yellow-500",
-  },
-  processing: {
-    label: "Processing",
-    icon: Clock,
-    className: "bg-blue-500/10 text-blue-500",
-  },
-  completed: {
-    label: "Completed",
-    icon: CheckCircle2,
-    className: "bg-green-500/10 text-green-500",
-  },
-  failed: {
-    label: "Failed",
-    icon: XCircle,
-    className: "bg-red-500/10 text-red-500",
-  },
-}
+import { StatusBadge } from "@/components/cases/status-badge"
 
 /**
  * Cases Page Component
@@ -132,9 +103,6 @@ export default async function CasesPage() {
         /* Cases Grid */
         <div className="grid gap-4">
           {cases.map((caseItem) => {
-            const status = statusConfig[caseItem.status as keyof typeof statusConfig] || statusConfig.pending
-            const StatusIcon = status.icon
-
             return (
               <Card key={caseItem.id} className="bg-card border-border hover:border-primary/50 transition-colors">
                 <CardContent className="p-6">
@@ -161,10 +129,10 @@ export default async function CasesPage() {
 
                     <div className="flex items-center gap-4">
                       {/* Status Badge */}
-                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${status.className}`}>
-                        <StatusIcon className="h-4 w-4" />
-                        <span className="text-sm font-medium">{status.label}</span>
-                      </div>
+                      <StatusBadge 
+                        caseId={caseItem.id} 
+                        currentStatus={caseItem.status as any}
+                      />
 
                       {/* View Button */}
                       <Button variant="outline" asChild>
