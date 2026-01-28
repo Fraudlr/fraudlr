@@ -15,6 +15,7 @@
 import { Header } from "@/components/landing/header"
 import { Hero } from "@/components/landing/hero"
 import { Features } from "@/components/landing/features"
+import { Integration } from "@/components/landing/integration"
 import { Pricing } from "@/components/landing/pricing"
 import { Contact } from "@/components/landing/contact"
 import { Footer } from "@/components/landing/footer"
@@ -36,6 +37,9 @@ export default function Home() {
       
       {/* Features Section */}
       <Features />
+      
+      {/* Integration Section */}
+      <Integration />
       
       {/* Pricing Section */}
       <Pricing />
