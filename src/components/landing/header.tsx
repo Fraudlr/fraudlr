@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils"
 const navLinks = [
   { label: "Features", href: "#features" },
   { label: "Pricing", href: "#pricing" },
-  { label: "Docs", href: "#docs" },
+  { label: "Developers", href: "/developers" },
   { label: "Contact", href: "#contact" },
 ]
 
@@ -79,9 +79,9 @@ export function Header() {
         // Smooth scroll to the element
         element.scrollIntoView({ behavior: "smooth" })
       }
-      // Close mobile menu if open
-      setIsOpen(false)
     }
+    // Close mobile menu if open
+    setIsOpen(false)
   }
 
   return (

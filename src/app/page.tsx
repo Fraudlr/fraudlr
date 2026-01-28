@@ -6,9 +6,9 @@
  * 1. Hero - Main banner with value proposition
  * 2. Features - Platform capabilities
  * 3. Pricing - Subscription tiers
- * 4. Docs - API documentation
- * 5. Contact - Get in touch form
+ * 4. Contact - Get in touch form
  * 
+ * Developer documentation has been moved to a separate /developers page.
  * All sections are on a single page with smooth scroll navigation.
  */
 
@@ -16,7 +16,6 @@ import { Header } from "@/components/landing/header"
 import { Hero } from "@/components/landing/hero"
 import { Features } from "@/components/landing/features"
 import { Pricing } from "@/components/landing/pricing"
-import { Docs } from "@/components/landing/docs"
 import { Contact } from "@/components/landing/contact"
 import { Footer } from "@/components/landing/footer"
 
@@ -40,9 +39,6 @@ export default function Home() {
       
       {/* Pricing Section */}
       <Pricing />
-      
-      {/* API Documentation Section */}
-      <Docs />
       
       {/* Contact Section */}
       <Contact />
