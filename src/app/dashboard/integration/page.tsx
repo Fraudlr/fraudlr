@@ -40,7 +40,9 @@ export default async function IntegrationPage() {
   }
 
   // Check if user has Pro tier for integrations
-  const hasIntegrationAccess = user.tier === "pro" || user.tier === "standard"
+  // TEMPORARY: For development purposes - bypassing upgrade feature for all users (current and new sign-ups)
+  // TODO: Re-enable tier check when ready for production
+  const hasIntegrationAccess = true // user.tier === "pro" || user.tier === "standard"
 
   return (
     <div className="space-y-6">

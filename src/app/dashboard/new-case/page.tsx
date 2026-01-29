@@ -57,6 +57,7 @@ export default function NewCasePage() {
   const [description, setDescription] = React.useState("")
   const [file, setFile] = React.useState<File | null>(null)
   const [isCreating, setIsCreating] = React.useState(false)
+  const [showCaseCard, setShowCaseCard] = React.useState(true)
   
   // Chat state
   const [messages, setMessages] = React.useState<Message[]>([
@@ -161,6 +162,7 @@ export default function NewCasePage() {
       return
     }
 
+    setShowCaseCard(false)
     setIsCreating(true)
     addMessage("user", `Create case: "${caseName}"`)
     if (file) {
@@ -214,6 +216,7 @@ export default function NewCasePage() {
   return (
     <div className="h-[calc(100vh-8rem)] flex gap-6">
       {/* Left Panel - Case Form */}
+      {showCaseCard && (
       <Card className="w-80 shrink-0 bg-card border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -301,6 +304,7 @@ export default function NewCasePage() {
           </Button>
         </CardContent>
       </Card>
+      )}
 
       {/* Right Panel - Chat Interface */}
       <Card className="flex-1 flex flex-col bg-card border-border">
