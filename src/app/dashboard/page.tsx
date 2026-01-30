@@ -11,6 +11,9 @@
  * Layout inspired by ChatGPT-style dashboard with shadcn/ui components.
  */
 
+"use client"
+
+import { useState } from "react"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { getCurrentUser } from "@/lib/auth"
@@ -24,6 +27,18 @@ import {
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
+import {
   PlusCircle,
   FileSpreadsheet,
   AlertTriangle,
@@ -33,58 +48,74 @@ import {
   ArrowRight,
   Upload,
 } from "lucide-react"
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+
+// TODO: Replace with real data from API/database
+// Sample data for the anomalies chart - showing monthly aggregated anomaly counts
+// This is placeholder data for demonstration purposes and should be replaced
+// with actual anomaly detection results from your fraud detection system
+const chartData = [
+  { date: "2025-03-01", anomalies: 145 },
+  { date: "2025-04-01", anomalies: 189 },
+  { date: "2025-05-01", anomalies: 167 },
+  { date: "2025-06-01", anomalies: 212 },
+  { date: "2025-07-01", anomalies: 198 },
+  { date: "2025-08-01", anomalies: 234 },
+  { date: "2025-09-01", anomalies: 221 },
+  { date: "2025-10-01", anomalies: 256 },
+  { date: "2025-11-01", anomalies: 243 },
+  { date: "2025-12-01", anomalies: 278 },
+  { date: "2026-01-01", anomalies: 265 },
+]
+
+const chartConfig = {
+  anomalies: {
+    label: "Anomalies",
+    color: "hsl(var(--chart-1))",
+  },
+}
 
 /**
  * Dashboard Page Component
  * 
  * Server component that fetches user data and displays overview.
  */
-export default async function DashboardPage() {
-  // Get authenticated user
-  const user = await getCurrentUser()
+export default function DashboardPage() {
+  const [timeRange, setTimeRange] = useState("6m")
   
-  if (!user) {
-    redirect("/login")
+  // For demo purposes - in a real app, this would come from an API
+  const user = {
+    id: "1",
+    name: "John Doe",
+    tier: "free"
   }
 
   // Fetch user statistics from database
-  let stats = {
-    totalCases: 0,
-    pendingCases: 0,
-    processingCases: 0,
-    completedCases: 0,
-    failedCases: 0,
+  const stats = {
+    totalCases: 12,
+    pendingCases: 3,
+    processingCases: 2,
+    completedCases: 6,
+    failedCases: 1,
   }
 
-  try {
-    // Count total cases for user
-    stats.totalCases = await prisma.case.count({
-      where: { userId: user.id },
-    })
+  const filteredData = chartData.filter((item) => {
+    const date = new Date(item.date)
+    const now = new Date()
+    let monthsToSubtract = 6
 
-    // Count pending cases
-    stats.pendingCases = await prisma.case.count({
-      where: { userId: user.id, status: "pending" },
-    })
+    if (timeRange === "3m") {
+      monthsToSubtract = 3
+    } else if (timeRange === "6m") {
+      monthsToSubtract = 6
+    } else if (timeRange === "12m") {
+      monthsToSubtract = 12
+    }
 
-    // Count processing cases
-    stats.processingCases = await prisma.case.count({
-      where: { userId: user.id, status: "processing" },
-    })
-
-    // Count completed cases
-    stats.completedCases = await prisma.case.count({
-      where: { userId: user.id, status: "completed" },
-    })
-
-    // Count failed cases
-    stats.failedCases = await prisma.case.count({
-      where: { userId: user.id, status: "failed" },
-    })
-  } catch (error) {
-    // Database might not be connected yet - use defaults
-    console.log("Database connection pending")
-  }
+    const startDate = new Date(now)
+    startDate.setMonth(startDate.getMonth() - monthsToSubtract)
+    return date >= startDate
+  })
 
   return (
     <div className="space-y-8">
@@ -199,100 +230,75 @@ export default async function DashboardPage() {
         </Card>
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Quick Start Card */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle>Quick Start</CardTitle>
+      {/* Anomalies Chart */}
+      <Card className="bg-card border-border">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <div>
+            <CardTitle>Overall anomalies</CardTitle>
             <CardDescription>
-              Get started with fraud detection in minutes
+              Showing anomaly alerts over time
             </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* New Case Action */}
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <PlusCircle className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h4 className="font-medium">Create New Case</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Start a new fraud analysis
-                  </p>
-                </div>
-              </div>
-              <Button asChild>
-                <Link href="/dashboard/new-case">
-                  Start
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-
-            {/* Upload CSV Action */}
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-accent/50 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Upload className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h4 className="font-medium">Upload CSV</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Analyze transaction data
-                  </p>
-                </div>
-              </div>
-              <Button variant="outline" asChild>
-                <Link href="/dashboard/new-case">
-                  Upload
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* AI Capabilities Card */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle>AI Analysis Modules</CardTitle>
-            <CardDescription>
-              Powered by advanced fraud detection algorithms
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Benford's Law */}
-            <div className="flex items-start gap-4 p-4 rounded-lg border border-border">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <span className="text-blue-500 font-mono font-bold text-sm">B</span>
-              </div>
-              <div>
-                <h4 className="font-medium">Benford's Law Analysis</h4>
-                <p className="text-sm text-muted-foreground">
-                  Detects anomalies in first-digit distribution patterns that 
-                  may indicate fraudulent data manipulation.
-                </p>
-              </div>
-            </div>
-
-            {/* M-Score */}
-            <div className="flex items-start gap-4 p-4 rounded-lg border border-border">
-              <div className="p-2 rounded-lg bg-purple-500/10">
-                <span className="text-purple-500 font-mono font-bold text-sm">M</span>
-              </div>
-              <div>
-                <h4 className="font-medium">M-Score Detection</h4>
-                <p className="text-sm text-muted-foreground">
-                  Beneish M-Score model to identify potential earnings 
-                  manipulation and financial statement fraud.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger
+              className="w-[160px] rounded-lg"
+              aria-label="Select a time range"
+            >
+              <SelectValue placeholder="Last 6 months" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="3m" className="rounded-lg">
+                Last 3 months
+              </SelectItem>
+              <SelectItem value="6m" className="rounded-lg">
+                Last 6 months
+              </SelectItem>
+              <SelectItem value="12m" className="rounded-lg">
+                Last 12 months
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+            <AreaChart
+              accessibilityLayer
+              data={filteredData}
+              margin={{
+                left: 12,
+                right: 12,
+              }}
+            >
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(value) => {
+                  const date = new Date(value)
+                  return date.toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric",
+                  })
+                }}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="line" />}
+              />
+              <Area
+                dataKey="anomalies"
+                type="natural"
+                fill="hsl(280 100% 70% / 0.4)"
+                fillOpacity={0.4}
+                stroke="hsl(280 100% 70%)"
+                stackId="a"
+              />
+            </AreaChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
 
       {/* Getting Started Guide */}
       {stats.totalCases === 0 && (
