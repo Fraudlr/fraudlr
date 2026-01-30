@@ -115,8 +115,11 @@ export async function POST(request: NextRequest) {
     const name = formData.get("name") as string
     const description = formData.get("description") as string
     const file = formData.get("file") as File
+    const dataPointId = formData.get("dataPointId") as string | null
+    const dataPointType = formData.get("dataPointType") as string | null
+    const dataPointName = formData.get("dataPointName") as string | null
 
-    console.log('Received form data:', { name, description, fileName: file?.name }) // Debug log
+    console.log('Received form data:', { name, description, fileName: file?.name, dataPointId, dataPointType, dataPointName }) // Debug log
 
     // Validate required fields
     if (!name || !name.trim()) {
@@ -180,6 +183,10 @@ export async function POST(request: NextRequest) {
         description: description || "",
         status: "pending",
         userId: user.id,
+        // Data point integration fields
+        dataPointId: dataPointId || null,
+        dataPointType: dataPointType || null,
+        dataPointName: dataPointName || null,
         files: file ? {
           create: {
             filename: file.name,

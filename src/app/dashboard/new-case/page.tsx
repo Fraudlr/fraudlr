@@ -7,6 +7,7 @@
  * - CSV file upload
  * - AI module selection (Benford, M-Score)
  * - ChatGPT-style interface for interaction
+ * - Data Point integration selection
  */
 
 "use client"
@@ -24,6 +25,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Upload,
   FileSpreadsheet,
@@ -32,8 +41,25 @@ import {
   User,
   Loader2,
   X,
+  Globe,
+  Database,
 } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
+
+/**
+ * API Integration Entry Type (matching integration page)
+ */
+interface ApiIntegration {
+  id: string
+  type: "api" | "sql"
+  datasetName: string
+  endpointUrl: string
+  authToken: string
+  apiKey: string
+  jsonPayload: string
+  sourceName: string
+  createdAt: string
+}
 
 /**
  * Message type for chat interface
@@ -56,6 +82,8 @@ export default function NewCasePage() {
   const [caseName, setCaseName] = React.useState("")
   const [description, setDescription] = React.useState("")
   const [file, setFile] = React.useState<File | null>(null)
+  const [selectedDataPoint, setSelectedDataPoint] = React.useState<string>("")
+  const [integrations, setIntegrations] = React.useState<ApiIntegration[]>([])
   const [isCreating, setIsCreating] = React.useState(false)
   const [showCaseCard, setShowCaseCard] = React.useState(true)
   
@@ -72,6 +100,18 @@ export default function NewCasePage() {
   
   // Ref for auto-scrolling chat
   const scrollRef = React.useRef<HTMLDivElement>(null)
+
+  // Load integrations from localStorage on mount
+  React.useEffect(() => {
+    const stored = localStorage.getItem("fraudlr-integrations")
+    if (stored) {
+      try {
+        setIntegrations(JSON.parse(stored))
+      } catch (e) {
+        console.error("Failed to parse integrations:", e)
+      }
+    }
+  }, [])
 
   /**
    * Handle file selection
@@ -162,10 +202,18 @@ export default function NewCasePage() {
       return
     }
 
+    // Get selected integration details
+    const selectedIntegration = selectedDataPoint 
+      ? integrations.find(i => i.id === selectedDataPoint) 
+      : null
+
     setShowCaseCard(false)
     setIsCreating(true)
-    addMessage("user", `Create case: "${caseName}"`)
-    if (file) {
+    addMessage("user", `Create case: "${caseName}"${selectedIntegration ? ` with ${selectedIntegration.datasetName} data point` : ""}`)
+    
+    if (selectedIntegration) {
+      addMessage("assistant", `Creating your case with ${selectedIntegration.type.toUpperCase()} data point: ${selectedIntegration.datasetName}...`)
+    } else if (file) {
       addMessage("assistant", "Creating your case and starting analysis...")
     } else {
       addMessage("assistant", "Creating your case. You can upload a CSV file later for analysis.")
@@ -179,6 +227,12 @@ export default function NewCasePage() {
       if (file) {
         formData.append("file", file)
       }
+      // Include data point information
+      if (selectedDataPoint && selectedIntegration) {
+        formData.append("dataPointId", selectedDataPoint)
+        formData.append("dataPointType", selectedIntegration.type)
+        formData.append("dataPointName", selectedIntegration.datasetName)
+      }
 
       const response = await fetch("/api/cases", {
         method: "POST",
@@ -187,10 +241,15 @@ export default function NewCasePage() {
 
       if (response.ok) {
         const data = await response.json()
-        addMessage(
-          "assistant",
-          "✅ Case created successfully! I'm now analyzing your data using Benford's Law and M-Score algorithms. You'll be redirected to the case details shortly."
-        )
+        
+        // Build success message
+        let successMessage = "✅ Case created successfully!"
+        if (selectedIntegration) {
+          successMessage += ` Connected to ${selectedIntegration.type.toUpperCase()} data point: ${selectedIntegration.datasetName}.`
+        }
+        successMessage += " I'm now analyzing your data using Benford's Law and M-Score algorithms. You'll be redirected to the case details shortly."
+        
+        addMessage("assistant", successMessage)
         
         // Redirect to case details after a brief delay
         setTimeout(() => {
@@ -252,6 +311,72 @@ export default function NewCasePage() {
               className="bg-background border-border resize-none"
             />
           </div>
+
+          {/* Data Point Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="dataPoint">Data Point</Label>
+            <Select
+              value={selectedDataPoint}
+              onValueChange={setSelectedDataPoint}
+            >
+              <SelectTrigger className="bg-background border-border">
+                <SelectValue placeholder="Select integration..." />
+              </SelectTrigger>
+              <SelectContent>
+                {integrations.length === 0 ? (
+                  <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                    No integrations available.
+                    <br />
+                    <span className="text-xs">Add integrations in Settings → Integrations</span>
+                  </div>
+                ) : (
+                  integrations.map((integration) => (
+                    <SelectItem key={integration.id} value={integration.id}>
+                      <div className="flex items-center gap-2">
+                        {integration.type === "api" ? (
+                          <Globe className="h-3.5 w-3.5 text-blue-500" />
+                        ) : (
+                          <Database className="h-3.5 w-3.5 text-purple-500" />
+                        )}
+                        <span>{integration.datasetName}</span>
+                        <Badge 
+                          variant="secondary" 
+                          className={`text-[10px] px-1.5 py-0 ${
+                            integration.type === "api" 
+                              ? "bg-blue-500/10 text-blue-500" 
+                              : "bg-purple-500/10 text-purple-500"
+                          }`}
+                        >
+                          {integration.type.toUpperCase()}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Link an API or SQL data source to this case
+            </p>
+          </div>
+
+          {/* Selected Data Point Badge */}
+          {selectedDataPoint && (
+            <div className="flex items-center gap-2 p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
+              <Globe className="h-4 w-4 text-blue-500" />
+              <span className="text-sm text-blue-500 flex-1">
+                {integrations.find(i => i.id === selectedDataPoint)?.datasetName}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 text-blue-500 hover:text-blue-600"
+                onClick={() => setSelectedDataPoint("")}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          )}
 
           {/* File Upload */}
           <div className="space-y-2">

@@ -22,10 +22,13 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   PlusCircle,
   FileSpreadsheet,
   ArrowRight,
+  Globe,
+  Database,
 } from "lucide-react"
 import { StatusBadge } from "@/components/cases/status-badge"
 
@@ -115,7 +118,27 @@ export default async function CasesPage() {
                       
                       {/* Case Info */}
                       <div>
-                        <h3 className="font-semibold text-lg">{caseItem.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-lg">{caseItem.name}</h3>
+                          {/* Data Point Badge */}
+                          {caseItem.dataPointType && (
+                            <Badge 
+                              variant="secondary" 
+                              className={`text-[10px] px-1.5 py-0.5 flex items-center gap-1 ${
+                                caseItem.dataPointType === "api" 
+                                  ? "bg-blue-500/10 text-blue-500" 
+                                  : "bg-purple-500/10 text-purple-500"
+                              }`}
+                            >
+                              {caseItem.dataPointType === "api" ? (
+                                <Globe className="h-3 w-3" />
+                              ) : (
+                                <Database className="h-3 w-3" />
+                              )}
+                              {caseItem.dataPointType.toUpperCase()} Data Point
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           {caseItem.description || "No description"}
                         </p>
@@ -123,6 +146,14 @@ export default async function CasesPage() {
                           <span>Created: {formatDate(caseItem.createdAt)}</span>
                           <span>•</span>
                           <span>{caseItem._count.files} file(s)</span>
+                          {caseItem.dataPointName && (
+                            <>
+                              <span>•</span>
+                              <span className={caseItem.dataPointType === "api" ? "text-blue-500" : "text-purple-500"}>
+                                {caseItem.dataPointName}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
                     </div>
