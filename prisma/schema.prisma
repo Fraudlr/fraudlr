@@ -1,19 +1,19 @@
-/**
- * @fileoverview Prisma Database Schema
- * 
- * This file defines the database structure for the Fraudlr application.
- * Prisma uses this schema to:
- * - Generate TypeScript types for type-safe database queries
- * - Create and manage database migrations
- * - Provide autocompletion in your IDE
- * 
- * Models defined:
- * - User: Stores user account information
- * - Case: Fraud analysis cases created by users
- * - CaseFile: Files uploaded for each case
- * - Integration: External data source connections
- * - ContactSubmission: Contact form submissions
- */
+//
+// @fileoverview Prisma Database Schema
+// 
+// This file defines the database structure for the Fraudlr application.
+// Prisma uses this schema to:
+// - Generate TypeScript types for type-safe database queries
+// - Create and manage database migrations
+// - Provide autocompletion in your IDE
+// 
+// Models defined:
+// - User: Stores user account information
+// - Case: Fraud analysis cases created by users
+// - CaseFile: Files uploaded for each case
+// - Integration: External data source connections
+// - ContactSubmission: Contact form submissions
+ 
 
 // Configure the Prisma Client generator
 // This creates the @prisma/client package with typed methods
@@ -93,6 +93,12 @@ model Case {
   // AI analysis results stored as JSON
   // Contains fraud scores, anomaly details, etc.
   results     Json?
+  
+  // Data Point integration fields
+  // Links this case to an API/SQL data source
+  dataPointId   String?   // ID of the linked integration
+  dataPointType String?   // 'api' or 'sql'
+  dataPointName String?   // Display name of the integration
   
   // Timestamps
   createdAt   DateTime @default(now())
