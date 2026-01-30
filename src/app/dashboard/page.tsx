@@ -11,9 +11,6 @@
  * Layout inspired by ChatGPT-style dashboard with shadcn/ui components.
  */
 
-"use client"
-
-import { useState } from "react"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { getCurrentUser } from "@/lib/auth"
@@ -26,18 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
+import { Badge } from "@/components/ui/badge"
 import {
   PlusCircle,
   FileSpreadsheet,
@@ -47,86 +33,89 @@ import {
   XCircle,
   ArrowRight,
   Upload,
+  Crown,
+  Sparkles,
 } from "lucide-react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
-
-// TODO: Replace with real data from API/database
-// Sample data for the anomalies chart - showing monthly aggregated anomaly counts
-// This is placeholder data for demonstration purposes and should be replaced
-// with actual anomaly detection results from your fraud detection system
-const chartData = [
-  { date: "2025-03-01", anomalies: 145 },
-  { date: "2025-04-01", anomalies: 189 },
-  { date: "2025-05-01", anomalies: 167 },
-  { date: "2025-06-01", anomalies: 212 },
-  { date: "2025-07-01", anomalies: 198 },
-  { date: "2025-08-01", anomalies: 234 },
-  { date: "2025-09-01", anomalies: 221 },
-  { date: "2025-10-01", anomalies: 256 },
-  { date: "2025-11-01", anomalies: 243 },
-  { date: "2025-12-01", anomalies: 278 },
-  { date: "2026-01-01", anomalies: 265 },
-]
-
-const chartConfig = {
-  anomalies: {
-    label: "Anomalies",
-    color: "hsl(var(--chart-1))",
-  },
-}
+import { AnomaliesChart } from "@/components/dashboard/anomalies-chart"
 
 /**
  * Dashboard Page Component
  * 
  * Server component that fetches user data and displays overview.
  */
-export default function DashboardPage() {
-  const [timeRange, setTimeRange] = useState("6m")
+export default async function DashboardPage() {
+  // Get authenticated user
+  const user = await getCurrentUser()
   
-  // For demo purposes - in a real app, this would come from an API
-  const user = {
-    id: "1",
-    name: "John Doe",
-    tier: "free"
+  if (!user) {
+    redirect("/login")
   }
 
   // Fetch user statistics from database
-  const stats = {
-    totalCases: 12,
-    pendingCases: 3,
-    processingCases: 2,
-    completedCases: 6,
-    failedCases: 1,
+  let stats = {
+    totalCases: 0,
+    pendingCases: 0,
+    processingCases: 0,
+    completedCases: 0,
+    failedCases: 0,
   }
 
-  const filteredData = chartData.filter((item) => {
-    const date = new Date(item.date)
-    const now = new Date()
-    let monthsToSubtract = 6
+  try {
+    // Count total cases for user
+    stats.totalCases = await prisma.case.count({
+      where: { userId: user.id },
+    })
 
-    if (timeRange === "3m") {
-      monthsToSubtract = 3
-    } else if (timeRange === "6m") {
-      monthsToSubtract = 6
-    } else if (timeRange === "12m") {
-      monthsToSubtract = 12
-    }
+    // Count pending cases
+    stats.pendingCases = await prisma.case.count({
+      where: { userId: user.id, status: "pending" },
+    })
 
-    const startDate = new Date(now)
-    startDate.setMonth(startDate.getMonth() - monthsToSubtract)
-    return date >= startDate
-  })
+    // Count processing cases
+    stats.processingCases = await prisma.case.count({
+      where: { userId: user.id, status: "processing" },
+    })
+
+    // Count completed cases
+    stats.completedCases = await prisma.case.count({
+      where: { userId: user.id, status: "completed" },
+    })
+
+    // Count failed cases
+    stats.failedCases = await prisma.case.count({
+      where: { userId: user.id, status: "failed" },
+    })
+  } catch (error) {
+    // Database might not be connected yet - use defaults
+    console.log("Database connection pending")
+  }
+
+  // Determine plan badge styling
+  const planBadgeVariant = user.tier === "free" ? "outline" : "default"
 
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">
-          Welcome back, {user.name.split(" ")[0]}!
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Here's an overview of your fraud detection activity.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">
+            Welcome back, {user.name.split(" ")[0]}!
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Here's an overview of your fraud detection activity.
+          </p>
+        </div>
+        <Badge 
+          variant={planBadgeVariant}
+          className="capitalize text-sm px-3 py-1.5 gap-1.5 self-start"
+        >
+          {user.tier === "free" ? (
+            <Sparkles className="h-3.5 w-3.5" />
+          ) : (
+            <Crown className="h-3.5 w-3.5" />
+          )}
+          {user.tier} plan
+        </Badge>
       </div>
 
       {/* Quick Action Cards */}
@@ -213,92 +202,10 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
-
-        {/* Current Tier */}
-        <Card className="bg-card border-border">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Current Plan
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold capitalize">{user.tier}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {user.tier === "free" ? "2 uploads/month" : "Unlimited uploads"}
-            </p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Anomalies Chart */}
-      <Card className="bg-card border-border">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <div>
-            <CardTitle>Overall anomalies</CardTitle>
-            <CardDescription>
-              Showing anomaly alerts over time
-            </CardDescription>
-          </div>
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger
-              className="w-[160px] rounded-lg"
-              aria-label="Select a time range"
-            >
-              <SelectValue placeholder="Last 6 months" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="3m" className="rounded-lg">
-                Last 3 months
-              </SelectItem>
-              <SelectItem value="6m" className="rounded-lg">
-                Last 6 months
-              </SelectItem>
-              <SelectItem value="12m" className="rounded-lg">
-                Last 12 months
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <AreaChart
-              accessibilityLayer
-              data={filteredData}
-              margin={{
-                left: 12,
-                right: 12,
-              }}
-            >
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="date"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickFormatter={(value) => {
-                  const date = new Date(value)
-                  return date.toLocaleDateString("en-US", {
-                    month: "short",
-                    year: "numeric",
-                  })
-                }}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent indicator="line" />}
-              />
-              <Area
-                dataKey="anomalies"
-                type="natural"
-                fill="hsl(280 100% 70% / 0.4)"
-                fillOpacity={0.4}
-                stroke="hsl(280 100% 70%)"
-                stackId="a"
-              />
-            </AreaChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+      <AnomaliesChart />
 
       {/* Getting Started Guide */}
       {stats.totalCases === 0 && (

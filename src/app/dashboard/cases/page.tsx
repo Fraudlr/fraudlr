@@ -10,27 +10,9 @@
  */
 
 import { redirect } from "next/navigation"
-import Link from "next/link"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { formatDate } from "@/lib/utils"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import {
-  PlusCircle,
-  FileSpreadsheet,
-  ArrowRight,
-  Globe,
-  Database,
-} from "lucide-react"
-import { StatusBadge } from "@/components/cases/status-badge"
+import { CasesClient } from "./cases-client"
 
 /**
  * Cases Page Component
@@ -63,123 +45,5 @@ export default async function CasesPage() {
     console.log("Database connection pending")
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Case History</h1>
-          <p className="text-muted-foreground mt-1">
-            View and manage your fraud analysis cases
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/dashboard/new-case">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Case
-          </Link>
-        </Button>
-      </div>
-
-      {/* Cases List */}
-      {cases.length === 0 ? (
-        /* Empty State */
-        <Card className="bg-card border-border">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="p-4 rounded-full bg-muted mb-4">
-              <FileSpreadsheet className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">No cases yet</h3>
-            <p className="text-muted-foreground text-center max-w-md mb-6">
-              Create your first fraud analysis case by uploading a CSV file 
-              containing your transaction data.
-            </p>
-            <Button asChild>
-              <Link href="/dashboard/new-case">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Create First Case
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        /* Cases Grid */
-        <div className="grid gap-4">
-          {cases.map((caseItem) => {
-            return (
-              <Card key={caseItem.id} className="bg-card border-border hover:border-primary/50 transition-colors">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      {/* Case Icon */}
-                      <div className="p-3 rounded-lg bg-primary/10">
-                        <FileSpreadsheet className="h-6 w-6 text-primary" />
-                      </div>
-                      
-                      {/* Case Info */}
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-lg">{caseItem.name}</h3>
-                          {/* Data Point Badge */}
-                          {caseItem.dataPointType && (
-                            <Badge 
-                              variant="secondary" 
-                              className={`text-[10px] px-1.5 py-0.5 flex items-center gap-1 ${
-                                caseItem.dataPointType === "api" 
-                                  ? "bg-blue-500/10 text-blue-500" 
-                                  : "bg-purple-500/10 text-purple-500"
-                              }`}
-                            >
-                              {caseItem.dataPointType === "api" ? (
-                                <Globe className="h-3 w-3" />
-                              ) : (
-                                <Database className="h-3 w-3" />
-                              )}
-                              {caseItem.dataPointType.toUpperCase()} Data Point
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {caseItem.description || "No description"}
-                        </p>
-                        <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                          <span>Created: {formatDate(caseItem.createdAt)}</span>
-                          <span>•</span>
-                          <span>{caseItem._count.files} file(s)</span>
-                          {caseItem.dataPointName && (
-                            <>
-                              <span>•</span>
-                              <span className={caseItem.dataPointType === "api" ? "text-blue-500" : "text-purple-500"}>
-                                {caseItem.dataPointName}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      {/* Status Badge */}
-                      <StatusBadge 
-                        caseId={caseItem.id} 
-                        currentStatus={caseItem.status as any}
-                      />
-
-                      {/* View Button */}
-                      <Button variant="outline" asChild>
-                        <Link href={`/dashboard/cases/${caseItem.id}`}>
-                          View
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
+  return <CasesClient cases={cases} />
 }

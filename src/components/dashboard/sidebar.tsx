@@ -22,6 +22,7 @@ import {
   PlusCircle,
   History,
   Plug,
+  FileBarChart,
   Settings,
   User,
   LogOut,
@@ -71,6 +72,11 @@ const mainNavItems = [
     title: "Integration",
     href: "/dashboard/integration",
     icon: Plug,
+  },
+  {
+    title: "Report Builder",
+    href: "/dashboard/report-builder",
+    icon: FileBarChart,
   },
 ]
 
