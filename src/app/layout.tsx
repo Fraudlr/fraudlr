@@ -18,6 +18,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import { ThemeProvider } from "@/components/providers/theme-provider"
 import { CookieBanner } from "@/components/cookie-banner"
+import { TawkMessenger } from "@/components/tawk-messenger"
 import "./globals.css"
 
 /**
@@ -108,6 +109,7 @@ export default function RootLayout({
         >
           {children}
           <CookieBanner />
+          <TawkMessenger />
         </ThemeProvider>
       </body>
     </html>
