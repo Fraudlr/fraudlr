@@ -64,6 +64,10 @@ model User {
   // Last update timestamp
   updatedAt DateTime @updatedAt
   
+  // Password reset fields
+  resetToken        String?   // Token for password reset (hashed)
+  resetTokenExpiry  DateTime? // Expiration time for reset token
+  
   // Relations: A user can have many cases and integrations
   cases        Case[]
   integrations Integration[]
@@ -93,6 +97,9 @@ model Case {
   // AI analysis results stored as JSON
   // Contains fraud scores, anomaly details, etc.
   results     Json?
+  
+  // Fraud Risk Score (0-10) computed from CSV indicator analysis
+  riskScore   Float?
   
   // Data Point integration fields
   // Links this case to an API/SQL data source

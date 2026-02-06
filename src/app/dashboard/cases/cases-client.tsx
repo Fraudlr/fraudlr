@@ -16,8 +16,18 @@ import {
   Globe,
   Database,
   Search,
+  ShieldAlert,
 } from "lucide-react"
 import { StatusBadge } from "@/components/cases/status-badge"
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 
 interface CasesClientProps {
   cases: any[]
@@ -25,6 +35,10 @@ interface CasesClientProps {
 
 export function CasesClient({ cases }: CasesClientProps) {
   const [searchQuery, setSearchQuery] = useState("")
+
+  // Delete dialog state
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Filter cases based on search query
   const filteredCases = useMemo(() => {
@@ -134,6 +148,27 @@ export function CasesClient({ cases }: CasesClientProps) {
                               {caseItem.dataPointType.toUpperCase()} Data Point
                             </Badge>
                           )}
+                          {/* Risk Score Badge */}
+                          {caseItem.riskScore != null && (
+                            <Badge
+                              variant="secondary"
+                              className={`text-[10px] px-1.5 py-0.5 flex items-center gap-1 ${
+                                caseItem.riskScore >= 6
+                                  ? "bg-red-500/10 text-red-500"
+                                  : caseItem.riskScore >= 3
+                                  ? "bg-orange-500/10 text-orange-500"
+                                  : "bg-yellow-500/10 text-yellow-500"
+                              }`}
+                            >
+                              <ShieldAlert className="h-3 w-3" />
+                              Risk Score: {caseItem.riskScore} —{" "}
+                              {caseItem.riskScore >= 6
+                                ? "Highest"
+                                : caseItem.riskScore >= 3
+                                ? "High"
+                                : "Medium"}
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {caseItem.description || "No description"}
@@ -168,6 +203,45 @@ export function CasesClient({ cases }: CasesClientProps) {
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                       </Button>
+                        {/* Delete Button */}
+                        <Dialog open={deleteId === caseItem.id} onOpenChange={(open) => !open && setDeleteId(null)}>
+                          <DialogTrigger asChild>
+                            <Button variant="destructive" size="sm" onClick={() => setDeleteId(caseItem.id)}>
+                              Delete
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Delete Case</DialogTitle>
+                              <DialogDescription>
+                                Are you sure you want to delete this case? This action cannot be undone.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                              <Button
+                                variant="destructive"
+                                disabled={isDeleting}
+                                onClick={async () => {
+                                  setIsDeleting(true)
+                                  try {
+                                    const res = await fetch(`/api/cases/${caseItem.id}`, {
+                                      method: "DELETE",
+                                    })
+                                    if (res.ok) {
+                                      // Remove from UI
+                                      setDeleteId(null)
+                                      window.location.reload()
+                                    }
+                                  } finally {
+                                    setIsDeleting(false)
+                                  }
+                                }}
+                              >
+                                {isDeleting ? "Deleting..." : "Confirm Delete"}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
                     </div>
                   </div>
                 </CardContent>

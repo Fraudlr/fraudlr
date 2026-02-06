@@ -43,8 +43,21 @@ import {
   X,
   Globe,
   Database,
+  BarChart3,
+  ShieldAlert,
+  AlertTriangle,
+  Copy,
+  PenLine,
+  Coins,
+  CalendarX2,
+  FileText,
 } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  parseCSV,
+  analyzeFraudIndicators,
+  type AnalysisResult,
+} from "@/lib/csv-analysis"
 
 /**
  * API Integration Entry Type (matching integration page)
@@ -68,6 +81,8 @@ interface Message {
   role: "user" | "assistant"
   content: string
   timestamp: Date
+  /** Optional rich analysis payload rendered as KPI cards + risk score */
+  analysis?: AnalysisResult
 }
 
 /**
@@ -86,6 +101,7 @@ export default function NewCasePage() {
   const [integrations, setIntegrations] = React.useState<ApiIntegration[]>([])
   const [isCreating, setIsCreating] = React.useState(false)
   const [showCaseCard, setShowCaseCard] = React.useState(true)
+  const [analysisResult, setAnalysisResult] = React.useState<AnalysisResult | null>(null)
   
   // Chat state
   const [messages, setMessages] = React.useState<Message[]>([
@@ -194,6 +210,18 @@ export default function NewCasePage() {
   }
 
   /**
+   * Read file as text (promisified FileReader)
+   */
+  const readFileAsText = (f: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => reject(reader.error)
+      reader.readAsText(f)
+    })
+  }
+
+  /**
    * Handle case creation
    */
   const handleCreateCase = async () => {
@@ -219,6 +247,45 @@ export default function NewCasePage() {
       addMessage("assistant", "Creating your case. You can upload a CSV file later for analysis.")
     }
 
+    // ──────────────────────────────────────────
+    // CSV Fraud Indicator Analysis
+    // ──────────────────────────────────────────
+    let analysis: AnalysisResult | null = null
+
+    if (file) {
+      try {
+        addMessage("assistant", "📊 Parsing your CSV file and running fraud indicator analysis...")
+        const text = await readFileAsText(file)
+        const parsed = parseCSV(text)
+
+        if (parsed.rows.length === 0) {
+          addMessage("assistant", "⚠️ The CSV file appears to be empty or could not be parsed. Continuing with case creation.")
+        } else {
+          analysis = analyzeFraudIndicators(parsed)
+          setAnalysisResult(analysis)
+
+          // Push a rich message with the analysis payload
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant" as const,
+              content: "__ANALYSIS__",
+              timestamp: new Date(),
+              analysis,
+            },
+          ])
+
+          // Scroll to bottom after rendering
+          setTimeout(() => {
+            scrollRef.current?.scrollIntoView({ behavior: "smooth" })
+          }, 200)
+        }
+      } catch (err) {
+        console.error("CSV analysis error:", err)
+        addMessage("assistant", "⚠️ Could not analyse the CSV file. Continuing with case creation.")
+      }
+    }
+
     try {
       // Create case via API
       const formData = new FormData()
@@ -232,6 +299,10 @@ export default function NewCasePage() {
         formData.append("dataPointId", selectedDataPoint)
         formData.append("dataPointType", selectedIntegration.type)
         formData.append("dataPointName", selectedIntegration.datasetName)
+      }
+      // Include risk score from analysis
+      if (analysis) {
+        formData.append("riskScore", String(analysis.riskScore))
       }
 
       const response = await fetch("/api/cases", {
@@ -247,14 +318,12 @@ export default function NewCasePage() {
         if (selectedIntegration) {
           successMessage += ` Connected to ${selectedIntegration.type.toUpperCase()} data point: ${selectedIntegration.datasetName}.`
         }
-        successMessage += " I'm now analyzing your data using Benford's Law and M-Score algorithms. You'll be redirected to the case details shortly."
+        if (analysis) {
+          successMessage += ` Fraud Risk Score of ${analysis.riskScore} (${analysis.riskLevel}) has been saved.`
+        }
+        successMessage += " The case has been saved to your Case History. You can continue reviewing the analysis here."
         
         addMessage("assistant", successMessage)
-        
-        // Redirect to case details after a brief delay
-        setTimeout(() => {
-          router.push(`/dashboard/cases/${data.id}`)
-        }, 2000)
       } else {
         const error = await response.json()
         addMessage(
@@ -458,15 +527,124 @@ export default function NewCasePage() {
                     <Bot className="h-4 w-4 text-primary" />
                   </div>
                 )}
-                <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                  }`}
-                >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                </div>
+
+                {/* ── Rich analysis card ── */}
+                {message.analysis ? (
+                  <div className="max-w-[90%] space-y-4">
+                    {/* Header */}
+                    <div className="bg-muted p-3 rounded-lg">
+                      <p className="text-sm font-semibold flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-primary" />
+                        Fraud Indicator Analysis — {message.analysis.totalRows} rows analysed
+                      </p>
+                    </div>
+
+                    {/* KPI Indicator Cards */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      {message.analysis.indicators.map((ind, i) => {
+                        const icons = [Copy, PenLine, Coins, CalendarX2, FileText]
+                        const colors = [
+                          "text-blue-500 bg-blue-500/10",
+                          "text-purple-500 bg-purple-500/10",
+                          "text-amber-500 bg-amber-500/10",
+                          "text-rose-500 bg-rose-500/10",
+                          "text-teal-500 bg-teal-500/10",
+                        ]
+                        const Icon = icons[i] ?? AlertTriangle
+                        const color = colors[i] ?? "text-muted-foreground bg-muted"
+                        return (
+                          <div
+                            key={ind.label}
+                            className="rounded-xl border border-border bg-card p-4 flex flex-col gap-2"
+                          >
+                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color}`}>
+                              <Icon className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs text-muted-foreground">{ind.label}</span>
+                            <span className="text-2xl font-bold">{ind.count}</span>
+                            <span className="text-[10px] text-muted-foreground">Weight: {ind.weight}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {/* Fraud Risk Score Card */}
+                    <div
+                      className={`rounded-xl border p-5 space-y-3 ${
+                        message.analysis.riskColor === "red"
+                          ? "border-red-500/40 bg-red-500/5"
+                          : message.analysis.riskColor === "orange"
+                          ? "border-orange-500/40 bg-orange-500/5"
+                          : "border-yellow-500/40 bg-yellow-500/5"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold flex items-center gap-2">
+                          <ShieldAlert className={`h-5 w-5 ${
+                            message.analysis.riskColor === "red" ? "text-red-500" :
+                            message.analysis.riskColor === "orange" ? "text-orange-500" : "text-yellow-500"
+                          }`} />
+                          Fraud Risk Score
+                        </span>
+                        <Badge
+                          className={`text-xs font-bold px-3 py-1 ${
+                            message.analysis.riskColor === "red"
+                              ? "bg-red-500/20 text-red-500 hover:bg-red-500/30"
+                              : message.analysis.riskColor === "orange"
+                              ? "bg-orange-500/20 text-orange-500 hover:bg-orange-500/30"
+                              : "bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30"
+                          }`}
+                        >
+                          {message.analysis.riskLevel} Flag
+                        </Badge>
+                      </div>
+
+                      <div className="text-4xl font-extrabold tracking-tight">
+                        {message.analysis.riskScore}
+                        <span className="text-base font-normal text-muted-foreground"> / 10</span>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div className="w-full h-2.5 rounded-full bg-muted overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            message.analysis.riskColor === "red"
+                              ? "bg-red-500"
+                              : message.analysis.riskColor === "orange"
+                              ? "bg-orange-500"
+                              : "bg-yellow-500"
+                          }`}
+                          style={{ width: `${(message.analysis.riskScore / 10) * 100}%` }}
+                        />
+                      </div>
+
+                      {/* Scale legend */}
+                      <div className="flex justify-between text-[10px] text-muted-foreground">
+                        <span>0</span>
+                        <span className="text-yellow-500">Medium (0-3)</span>
+                        <span className="text-orange-500">High (3-6)</span>
+                        <span className="text-red-500">Highest (6-10)</span>
+                        <span>10</span>
+                      </div>
+
+                      <p className="text-xs text-muted-foreground">
+                        Score = average weight ({(message.analysis.indicators.reduce((s, i) => s + i.weight, 0) / message.analysis.indicators.length).toFixed(2)}) × total indicators ({message.analysis.totalIndicators}). Higher score indicates more fraudulent activity.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  /* ── Normal text message ── */
+                  <div
+                    className={`max-w-[80%] p-3 rounded-lg ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  </div>
+                )}
+
                 {message.role === "user" && (
                   <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
                     <User className="h-4 w-4" />

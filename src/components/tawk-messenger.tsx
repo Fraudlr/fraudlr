@@ -68,6 +68,10 @@ export function TawkMessenger() {
     return true
   }
 
+  const onChatHidden = () => {
+    console.log('Tawk.to widget hidden')
+  }
+
   return (
     <TawkMessengerReact
       propertyId={propertyId}
@@ -75,6 +79,7 @@ export function TawkMessenger() {
       ref={tawkMessengerRef}
       onLoad={onLoad}
       onBeforeLoad={onBeforeLoad}
+      onChatHidden={onChatHidden}
     />
   )
 }
