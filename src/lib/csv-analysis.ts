@@ -443,13 +443,19 @@ export function analyzeFraudIndicators(parsed: ParsedCSV): AnalysisResult {
  * Fraud Risk Score = averageWeight × totalIndicators
  * Clamped to 0-10.
  *
- * averageWeight = sum(weights) / numberOfIndicatorTypes
+ * averageWeight = sum(weights of active indicators) / number of active indicators
+ * Only indicators with count > 0 are included in the average
  */
 export function calculateFraudRiskScore(indicators: IndicatorResult[]): number {
   if (indicators.length === 0) return 0
 
-  const totalWeight = indicators.reduce((sum, i) => sum + i.weight, 0)
-  const avgWeight = totalWeight / indicators.length
+  // Only include indicators that found something (count > 0)
+  const activeIndicators = indicators.filter((i) => i.count > 0)
+  
+  if (activeIndicators.length === 0) return 0
+
+  const totalWeight = activeIndicators.reduce((sum, i) => sum + i.weight, 0)
+  const avgWeight = totalWeight / activeIndicators.length
   const totalCount = indicators.reduce((sum, i) => sum + i.count, 0)
 
   const raw = avgWeight * totalCount

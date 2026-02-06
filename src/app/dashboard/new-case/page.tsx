@@ -300,9 +300,10 @@ export default function NewCasePage() {
         formData.append("dataPointType", selectedIntegration.type)
         formData.append("dataPointName", selectedIntegration.datasetName)
       }
-      // Include risk score from analysis
+      // Include risk score and full analysis results
       if (analysis) {
         formData.append("riskScore", String(analysis.riskScore))
+        formData.append("analysisResults", JSON.stringify(analysis))
       }
 
       const response = await fetch("/api/cases", {
@@ -628,7 +629,7 @@ export default function NewCasePage() {
                       </div>
 
                       <p className="text-xs text-muted-foreground">
-                        Score = average weight ({(message.analysis.indicators.reduce((s, i) => s + i.weight, 0) / message.analysis.indicators.length).toFixed(2)}) × total indicators ({message.analysis.totalIndicators}). Higher score indicates more fraudulent activity.
+                        Score = average weight ({(message.analysis.indicators.filter(i => i.count > 0).reduce((s, i) => s + i.weight, 0) / Math.max(1, message.analysis.indicators.filter(i => i.count > 0).length)).toFixed(2)}) × total indicators ({message.analysis.totalIndicators}). Only active indicators included in average. Higher score indicates more fraudulent activity.
                       </p>
                     </div>
                   </div>

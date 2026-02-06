@@ -120,6 +120,8 @@ export async function POST(request: NextRequest) {
     const dataPointName = formData.get("dataPointName") as string | null
     const riskScoreRaw = formData.get("riskScore") as string | null
     const riskScore = riskScoreRaw ? parseFloat(riskScoreRaw) : null
+    const analysisResultsRaw = formData.get("analysisResults") as string | null
+    const analysisResults = analysisResultsRaw ? JSON.parse(analysisResultsRaw) : null
 
     console.log('Received form data:', { name, description, fileName: file?.name, dataPointId, dataPointType, dataPointName }) // Debug log
 
@@ -190,6 +192,7 @@ export async function POST(request: NextRequest) {
         dataPointType: dataPointType || null,
         dataPointName: dataPointName || null,
         riskScore: riskScore,  // Fraud Risk Score (0-10) from CSV analysis
+        results: analysisResults,  // Full analysis results with indicators
         files: file ? {
           create: {
             filename: file.name,

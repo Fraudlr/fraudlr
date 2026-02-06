@@ -31,6 +31,12 @@ import {
   CalendarDays,
   Info,
   FileText,
+  Copy,
+  PenLine,
+  Coins,
+  CalendarX2,
+  AlertTriangle,
+  BarChart3,
 } from "lucide-react"
 import { StatusBadge } from "@/components/cases/status-badge"
 
@@ -112,6 +118,51 @@ export function CaseDetailClient({ caseData }: CaseDetailClientProps) {
         />
       </div>
 
+      {/* ── Fraud Indicator Analysis ── */}
+      {caseData.results?.indicators && (
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Fraud Indicator Analysis
+            </CardTitle>
+            <CardDescription>
+              {caseData.results.totalRows} rows analysed • {caseData.results.totalIndicators} total indicators found
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* KPI Indicator Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {caseData.results.indicators.map((ind: any, i: number) => {
+                const icons = [Copy, PenLine, Coins, CalendarX2, FileText]
+                const colors = [
+                  "text-blue-500 bg-blue-500/10",
+                  "text-purple-500 bg-purple-500/10",
+                  "text-amber-500 bg-amber-500/10",
+                  "text-rose-500 bg-rose-500/10",
+                  "text-teal-500 bg-teal-500/10",
+                ]
+                const Icon = icons[i] ?? AlertTriangle
+                const color = colors[i] ?? "text-muted-foreground bg-muted"
+                return (
+                  <div
+                    key={ind.label}
+                    className="rounded-xl border border-border bg-card p-4 flex flex-col gap-2"
+                  >
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color}`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span className="text-xs text-muted-foreground">{ind.label}</span>
+                    <span className="text-2xl font-bold">{ind.count}</span>
+                    <span className="text-[10px] text-muted-foreground">Weight: {ind.weight}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* ── Risk Score Card ── */}
       {hasRiskScore && risk && (
         <Card className={`border ${risk.bg}`}>
@@ -158,6 +209,41 @@ export function CaseDetailClient({ caseData }: CaseDetailClientProps) {
               <span className="text-red-500">Highest (6-10)</span>
               <span>10</span>
             </div>
+
+            {/* Calculation Breakdown */}
+            {caseData.results?.indicators && (() => {
+              const activeIndicators = caseData.results.indicators.filter((i: any) => i.count > 0)
+              const avgWeight = activeIndicators.length > 0
+                ? activeIndicators.reduce((s: number, i: any) => s + i.weight, 0) / activeIndicators.length
+                : 0
+              
+              return (
+                <div className="mt-4 p-4 rounded-lg bg-muted/50 space-y-2">
+                  <p className="text-xs font-semibold text-foreground">Risk Score Calculation:</p>
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    <p>
+                      <span className="font-mono">Active Indicators</span> = {activeIndicators.length} (only indicators with findings)
+                    </p>
+                    <p>
+                      <span className="font-mono">Average Weight</span> ={" "}
+                      ({activeIndicators.map((i: any) => i.weight).join(" + ")}) / {activeIndicators.length}
+                      {" "}= <span className="font-semibold">{avgWeight.toFixed(2)}</span>
+                    </p>
+                    <p>
+                      <span className="font-mono">Total Indicators</span> ={" "}
+                      {caseData.results.indicators.map((i: any) => `${i.count}`).join(" + ")}
+                      {" "}= <span className="font-semibold">{caseData.results.totalIndicators}</span>
+                    </p>
+                    <p className="pt-1 border-t border-border">
+                      <span className="font-mono">Risk Score</span> ={" "}
+                      {avgWeight.toFixed(2)}
+                      {" "}× {caseData.results.totalIndicators}
+                      {" "}= <span className="font-bold text-foreground">{caseData.riskScore}</span>
+                    </p>
+                  </div>
+                </div>
+              )
+            })()}
           </CardContent>
         </Card>
       )}
