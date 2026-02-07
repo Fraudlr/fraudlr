@@ -5,8 +5,10 @@
  * This is a one-page design with multiple sections:
  * 1. Hero - Main banner with value proposition
  * 2. Features - Platform capabilities
- * 3. Pricing - Subscription tiers
+ * 3. Integration - External data connections
  * 4. Contact - Get in touch form
+ * 
+ * Pricing has been moved to a dedicated /pricing page.
  * 
  * Developer documentation has been moved to a separate /developers page.
  * All sections are on a single page with smooth scroll navigation.
@@ -16,7 +18,6 @@ import { Header } from "@/components/landing/header"
 import { Hero } from "@/components/landing/hero"
 import { Features } from "@/components/landing/features"
 import { Integration } from "@/components/landing/integration"
-import { Pricing } from "@/components/landing/pricing"
 import { Contact } from "@/components/landing/contact"
 import { Footer } from "@/components/landing/footer"
 
@@ -40,9 +41,6 @@ export default function Home() {
       
       {/* Integration Section */}
       <Integration />
-      
-      {/* Pricing Section */}
-      <Pricing />
       
       {/* Contact Section */}
       <Contact />

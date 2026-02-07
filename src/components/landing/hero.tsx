@@ -101,6 +101,82 @@ export function Hero() {
             {/* Reserved for future hero visual */}
           </div>
         </div>
+        
+        {/* LLM Agents Section */}
+        <div className="mt-40 space-y-6 flex flex-col items-center">
+          {/* Description Text */}
+          <p className="text-sm text-[#9CA3AF] text-center">
+            Fraudlr uses the latest LLM agents to assist with detecting fraud activities
+          </p>
+          
+          {/* Static Logo Display */}
+          <div className="flex gap-8 justify-center flex-wrap">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-16 h-16 relative">
+                <Image
+                  src="/images/llm-agents/icons8-chatgpt-100.png"
+                  alt="ChatGPT"
+                  width={64}
+                  height={64}
+                  className="object-contain"
+                />
+              </div>
+              <span className="text-xs text-[#9CA3AF]">ChatGPT</span>
+            </div>
+            
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-16 h-16 relative">
+                <Image
+                  src="/images/llm-agents/icons8-claude-ai-100.png"
+                  alt="Claude"
+                  width={64}
+                  height={64}
+                  className="object-contain"
+                />
+              </div>
+              <span className="text-xs text-[#9CA3AF]">Claude</span>
+            </div>
+            
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-16 h-16 relative">
+                <Image
+                  src="/images/llm-agents/icons8-gemini-ai-100.png"
+                  alt="Gemini"
+                  width={64}
+                  height={64}
+                  className="object-contain"
+                />
+              </div>
+              <span className="text-xs text-[#9CA3AF]">Gemini</span>
+            </div>
+            
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-16 h-16 relative">
+                <Image
+                  src="/images/llm-agents/icons8-grok-100.png"
+                  alt="Grok"
+                  width={64}
+                  height={64}
+                  className="object-contain"
+                />
+              </div>
+              <span className="text-xs text-[#9CA3AF]">Grok</span>
+            </div>
+            
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-16 h-16 relative">
+                <Image
+                  src="/images/llm-agents/icons8-perplexity-ai-100.png"
+                  alt="Perplexity"
+                  width={64}
+                  height={64}
+                  className="object-contain"
+                />
+              </div>
+              <span className="text-xs text-[#9CA3AF]">Perplexity</span>
+            </div>
+          </div>
+        </div>
       </div>
       
       {/* Scroll indicator */}
